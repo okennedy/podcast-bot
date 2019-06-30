@@ -1,0 +1,4 @@
+feedparser
+sqlalchemy
+psycopg2
+mutagen
