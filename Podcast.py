@@ -297,24 +297,3 @@ if __name__ == '__main__':
 
   args = parser.parse_args()
   args.func(args)
-
-#  if sys.argv[1] == "add":
-#    if sys.argv[2] == None:
-#      usage()
-    # db.add(sys.argv[2])
-  # file = "file:///home/xthemage/Documents/podcast-bot/foo.xml"
-  # feed = feedparser.parse(file)
-  # print(feed["url"])
-  # print(feed["channel"]["title"])
-  # print(feed["channel"]["description"])
-  # for item in feed["items"]:
-  #   print('----------------')
-  #   if "date" in item:
-  #     print(item["date"])
-  #   elif "published" in item:
-  #     print(item["published"])
-  #   else:
-  #     print("NO DATE")
-  #   print(item["title"])
-  #   print(item["links"])
-  #   # print(item)
