@@ -136,45 +136,49 @@ class Podcast:
         if "type" in link and link["type"].split("/")[0] == "audio" and "href" in link:
           fields["track_url"] = link["href"]
           break
-
-      # print(fields["published"])
-      if fields["gid"] in existing_gids:
-        # print("Update {}: {}".format(self.name, fields["title"]))
-        gid = fields.pop("gid")
-        del fields["podcast"]
-        insert_or_update_track_query = (
-          self.db.tracks.update()
-                        .values(**fields)
-                        .where(self.db.tracks.c.podcast == self.id and
-                               self.db.tracks.c.gid == gid)
-        )
-      else:
-        print("Insert {}: {}".format(self.name, fields["title"]))
-        insert_or_update_track_query = (
-          self.db.tracks.insert()
-                        .values(**fields)
-        )
-      self.db.conn.execute(insert_or_update_track_query)
+      if "track_url" not in fields:
+        print("Unexpected RSS record without track: {}".format(track))
+        break
+      if fields["track_url"] is not None:
+        # print(fields["published"])
+        if fields["gid"] in existing_gids:
+          # print("Update {}: {}".format(self.name, fields["title"]))
+          gid = fields.pop("gid")
+          del fields["podcast"]
+          insert_or_update_track_query = (
+            self.db.tracks.update()
+                          .values(**fields)
+                          .where(self.db.tracks.c.podcast == self.id and
+                                 self.db.tracks.c.gid == gid)
+          )
+        else:
+          print("Insert {}: {}".format(self.name, fields["title"]))
+          insert_or_update_track_query = (
+            self.db.tracks.insert()
+                          .values(**fields)
+          )
+        self.db.conn.execute(insert_or_update_track_query)
 
   def download(self, directory, update_metadata = False):
     print("Downloading {}...".format(self.name))
     for track in self.get_tracks():
       if track["track_file"] is None:
         gid = track["gid"].split("/")[-1]
-        file_name = "{}/cast{}-{}.mp3".format(directory, self.id, gid)
-        print(file_name)
-        print("Downloading (in 3 sec) {} -> {}".format(track["track_url"], file_name))
-        sleep(3)
-        subprocess.call(["curl", "-L", "-o", file_name, track["track_url"]], stdout = sys.stdout)
-        update_track_file = (
-          self.db.tracks.update()
-                        .values(track_file = file_name)
-                        .where(self.db.tracks.c.gid == track["gid"] and 
-                               self.db.tracks.c.podcast == self.id)
-        )
-        self.db.conn.execute(update_track_file)
-        if update_metadata:
-          self.update_metadata(track, file_name)
+        if gid != "":
+          file_name = "{}/cast{}-{}.mp3".format(directory, self.id, gid)
+          print(file_name)
+          print("Downloading (in 3 sec) {} -> {}".format(track["track_url"], file_name))
+          sleep(3)
+          subprocess.call(["curl", "-L", "-o", file_name, track["track_url"]], stdout = sys.stdout)
+          update_track_file = (
+            self.db.tracks.update()
+                          .values(track_file = file_name)
+                          .where(self.db.tracks.c.gid == track["gid"] and 
+                                 self.db.tracks.c.podcast == self.id)
+          )
+          self.db.conn.execute(update_track_file)
+          if update_metadata:
+            self.update_metadata(track, file_name)
       # else:
         # print("Already Have {}".format(track["track_file"]))
         # if update_metadata:
