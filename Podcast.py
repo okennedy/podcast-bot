@@ -137,20 +137,25 @@ class Podcast:
           fields["track_url"] = link["href"]
           break
       if "track_url" not in fields:
-        print("Unexpected RSS record without track: {}".format(track))
-        break
+        types = set( link["type"] for link in track["links"] )
+        if len(types & set(["text/html"])) == 0:
+          print("Unexpected RSS record for {} without audio track (available track formats are {})".format(track["title"], ", ".join(types)))
+        continue
       if fields["track_url"] is not None:
         # print(fields["published"])
         if fields["gid"] in existing_gids:
           # print("Update {}: {}".format(self.name, fields["title"]))
           gid = fields.pop("gid")
+          # print(gid)
           del fields["podcast"]
+          # print(fields)
           insert_or_update_track_query = (
             self.db.tracks.update()
+                          .where((self.db.tracks.c.podcast == self.id) &
+                                 (self.db.tracks.c.gid == gid))
                           .values(**fields)
-                          .where(self.db.tracks.c.podcast == self.id and
-                                 self.db.tracks.c.gid == gid)
           )
+          # print(insert_or_update_track_query)
         else:
           print("Insert {}: {}".format(self.name, fields["title"]))
           insert_or_update_track_query = (
