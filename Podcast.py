@@ -174,7 +174,7 @@ class Podcast:
           print(file_name)
           print("Downloading (in 3 sec) {} -> {}".format(track["track_url"], file_name))
           sleep(3)
-          subprocess.call(["curl", "-L", "-o", file_name, track["track_url"]], stdout = sys.stdout)
+          subprocess.call(["curl", "-L", "-s", "-o", file_name, track["track_url"]], stdout = sys.stdout)
           update_track_file = (
             self.db.tracks.update()
                           .values(track_file = file_name)
